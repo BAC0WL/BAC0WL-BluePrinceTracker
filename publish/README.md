@@ -13,7 +13,7 @@ This tool requires the **.NET 6 Runtime** (or newer). Download it from Microsoft
 
 Under **"Run desktop apps"**, download the **.NET Desktop Runtime 6.x** for Windows x64.
 
-If you're unsure whether you have it, try running the tool — Windows will prompt you with a direct download link if the runtime is missing.
+If you're unsure whether you have it, try running the exe and Windows will give you the download link if it is missing
 
 ### 2. Run as Administrator
 The tool reads another process's memory, which requires elevated privileges on Windows. Right-click `BluePrinceExternalReader.exe` and choose **Run as administrator**, or run it from an elevated command prompt.
@@ -24,10 +24,8 @@ The tool reads another process's memory, which requires elevated privileges on W
 
 1. Launch **Blue Prince**
 2. Run `BluePrinceExternalReader.exe` as administrator
-3. Open `overlay/index.html` and `overlay/map.html` *NOT LEGAL FOR WEEKLIES* in a browser for the overlay UI
-4. The tool will scan for the game automatically — once connected, the overlay updates in real time
-
-The overlay works best pinned as a browser window alongside the game, or on a second monitor.
+3. Open `overlay/index.html` (and `overlay/map.html` *NOT LEGAL FOR WEEKLIES*) as a browser source in OBS for the overlay UI
+4. The tool will scan for the game automatically and update in real time probably
 
 
 
