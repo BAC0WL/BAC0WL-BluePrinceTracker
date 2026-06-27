@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: transparent;
+    overflow: hidden;
+  }
+
+  #container {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 4px;
+  }
+
+  /* Outer room column — label above, box below, sits at bottom */
+  #outer-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  #outer-col-label {
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(200, 220, 240, 0.45);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+  }
+  #outer-panel {
+    background: linear-gradient(160deg, rgba(4, 8, 22, 0.90), rgba(6, 14, 32, 0.86));
+    border: 1px solid rgba(60, 120, 220, 0.45);
+    border-radius: 4px;
+    padding: 4px;
+  }
+  #outer-panel img {
+    width: 128px;
+    height: 128px;
+    image-rendering: crisp-edges;
+    display: block;
+  }
+
+  /* Right column: map + controls stacked */
+  #map-col {
+    display: inline-flex;
+    flex-direction: column;
+  }
+
+  #map {
+    position: relative;
+    background: linear-gradient(160deg, rgba(4, 8, 22, 0.90), rgba(6, 14, 32, 0.86));
+    border: 1px solid rgba(60, 120, 220, 0.45);
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+  }
+
+  .empty-cell {
+    position: absolute;
+    border: 1px solid rgba(60, 120, 220, 0.15);
+  }
+
+  .room {
+    position: absolute;
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  .room img {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  #player {
+    position: absolute;
+    z-index: 10;
+    pointer-events: none;
+    transition: left 0.3s ease, top 0.3s ease;
+  }
+
+  #player img {
+    width: 100%;
+    height: 100%;
+  }
+
+  #controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 7px;
+    background: linear-gradient(160deg, rgba(4, 8, 22, 0.90), rgba(6, 14, 32, 0.86));
+    border: 1px solid rgba(60, 120, 220, 0.45);
+    border-radius: 0 0 4px 4px;
+    font-family: monospace;
+  }
+  .ctrl-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.35);
+    margin-right: 2px;
+  }
+  .ctrl-btn {
+    font-size: 10px;
+    font-family: monospace;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.6);
+    border-radius: 3px;
+    padding: 2px 7px;
+    cursor: pointer;
+    line-height: 1.4;
+  }
+  .ctrl-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+  .ctrl-btn.active {
+    background: rgba(180,140,50,0.35);
+    border-color: rgba(180,140,50,0.55);
+    color: #f0e8d0;
+  }
+  .ctrl-sep { color: rgba(255,255,255,0.15); padding: 0 2px; }
+</style>
+</head>
+<body>
+
+<div id="container">
+  <div id="outer-col">
+    <span id="outer-col-label">Outer Room</span>
+    <div id="outer-panel">
+      <img id="outer-img" src="" alt="">
+    </div>
+  </div>
+  <div id="map-col">
+    <div id="map"></div>
+    <div id="controls">
+      <span class="ctrl-label">Slot:</span>
+      <button class="ctrl-btn slot-btn" data-slot="0" onclick="setSlot(0)">Auto</button>
+      <button class="ctrl-btn slot-btn" data-slot="1" onclick="setSlot(1)">1</button>
+      <button class="ctrl-btn slot-btn" data-slot="2" onclick="setSlot(2)">2</button>
+      <button class="ctrl-btn slot-btn" data-slot="3" onclick="setSlot(3)">3</button>
+      <button class="ctrl-btn slot-btn" data-slot="4" onclick="setSlot(4)">4</button>
+      <span class="ctrl-sep">|</span>
+      <button class="ctrl-btn" onclick="doRescan()">↺ Rescan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// === Configuration ===
+const STATS_PATH    = '../tracker_stats.json';
+const OVERRIDES_PATH = '../overrides.json';
+const TEXTURE_PATH  = '../Texture2D/';
+const CELL          = 70;    // px per grid cell
+const PLAYER_SIZE   = 26;    // px for the player icon
+const FLIP_Y        = true;  // true = larger game-Y is higher on screen (north = up)
+const POLL_MS       = 500;
+const GRID_COLS     = 5;
+const GRID_ROWS     = 9;
+// ====================
+
+const mapEl = document.getElementById('map');
+
+mapEl.style.width  = (GRID_COLS * CELL) + 'px';
+mapEl.style.height = (GRID_ROWS * CELL) + 'px';
+
+// Draw faint empty-cell grid once at startup
+(function buildGrid() {
+  for (let cx = 0; cx < GRID_COLS; cx++) {
+    for (let cy = 0; cy < GRID_ROWS; cy++) {
+      const screenRow = FLIP_Y ? (GRID_ROWS - 1 - cy) : cy;
+      const div = document.createElement('div');
+      div.className = 'empty-cell';
+      div.style.left   = (cx * CELL) + 'px';
+      div.style.top    = (screenRow * CELL) + 'px';
+      div.style.width  = CELL + 'px';
+      div.style.height = CELL + 'px';
+      mapEl.appendChild(div);
+    }
+  }
+})();
+
+let overrides = {};
+
+function loadOverrides() {
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', OVERRIDES_PATH + '?_=' + Date.now(), true);
+  xhr.overrideMimeType('application/json');
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState !== 4) return;
+    if (xhr.status === 0 || xhr.status === 200) {
+      try {
+        const raw = JSON.parse(xhr.responseText);
+        overrides = Object.fromEntries(
+          Object.entries(raw).filter(([k]) => !k.startsWith('_comment'))
+        );
+      } catch (_) {}
+    }
+  };
+  xhr.send();
+}
+
+function resolvedDoors(key, derivedDoors, wr) {
+  // Priority: key-doors-wr (most specific) → key-doors → key (general)
+  const withRot = derivedDoors ? key + '-' + derivedDoors + '-' + wr : key + '-' + wr;
+  const withDoors = derivedDoors ? key + '-' + derivedDoors : key;
+  if (overrides.hasOwnProperty(withRot))   return overrides[withRot];
+  if (overrides.hasOwnProperty(withDoors)) return overrides[withDoors];
+  if (overrides.hasOwnProperty(key))       return overrides[key];
+  return derivedDoors;
+}
+
+function textureSrc(key, doors) {
+  if (!key) return TEXTURE_PATH + 'Button Not Found.png';
+  return TEXTURE_PATH + (doors ? `${key}-${doors}.png` : `${key}.png`);
+}
+
+function buildRoomImg(key, rawDoors, wr) {
+  const doors = resolvedDoors(key, rawDoors, wr);
+  const img = document.createElement('img');
+  img.src = textureSrc(key, doors);
+  img.alt = key;
+
+  // Fallback chain:
+  //  1. key-doors.png       e.g. corridor-ns.png
+  //  2. key.png             e.g. corridor.png  (cloisters, fixed-layout rooms)
+  //  3. Button Not Found.png
+  let fallbackStage = 0;
+  img.onerror = function () {
+    fallbackStage++;
+    if (fallbackStage === 1 && doors) {
+      img.src = textureSrc(key, '');
+    } else {
+      img.src = TEXTURE_PATH + 'Button Not Found.png';
+      img.onerror = null;
+    }
+  };
+  return img;
+}
+
+const CTRL = 'http://localhost:5799';
+
+function doRescan() {
+  fetch(CTRL + '/rescan').catch(() => {});
+}
+function setSlot(n) {
+  fetch(CTRL + '/slot?n=' + n).catch(() => {});
+  document.querySelectorAll('.slot-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.slot === String(n)));
+}
+
+// Initialise slot button from config.json
+fetch('../config.json').then(r => r.json()).then(cfg => {
+  const n = cfg.save_slot ?? 0;
+  document.querySelectorAll('.slot-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.slot === String(n)));
+}).catch(() => {
+  document.querySelector('.slot-btn[data-slot="0"]').classList.add('active');
+});
+
+// roomDivs: cellKey → { el, key, doors }
+// Rooms are never removed mid-run (rooms don't un-draft), only when run_id changes or disconnect.
+let roomDivs    = {};
+let currentRunId = -1;
+let wasConnected = false;
+let lastJson     = null;
+
+function clearRooms() {
+  for (const k of Object.keys(roomDivs)) {
+    roomDivs[k].el.remove();
+  }
+  roomDivs = {};
+
+  const playerEl = document.getElementById('player');
+  if (playerEl) playerEl.remove();
+}
+
+function render(data) {
+  if (!data || !data.map || !data.connected) {
+    if (wasConnected) { clearRooms(); lastJson = null; }
+    wasConnected = false;
+    return;
+  }
+  wasConnected = true;
+
+  const { map } = data;
+  const rooms = map.rooms;
+  if (!rooms || rooms.length === 0) return;
+
+  // Outer room image — always visible, image hidden when no outer room drafted
+  const outerRoom = rooms.find(r => r.x === -1) ?? null;
+  const outerImg = document.getElementById('outer-img');
+  if (outerRoom) {
+    outerImg.src = TEXTURE_PATH + outerRoom.key + '-n.png';
+    outerImg.style.visibility = 'visible';
+  } else {
+    outerImg.style.visibility = 'hidden';
+  }
+
+  const gridRooms = rooms.filter(r => r.x !== -1);
+
+  // New run detected — clear stale rooms before rendering.
+  const runId = data.run_id ?? 0;
+  if (runId !== currentRunId) {
+    currentRunId = runId;
+    clearRooms();
+    lastJson = null;
+  }
+
+  const json = JSON.stringify(map);
+  if (json === lastJson) return;
+  lastJson = json;
+
+  // Add or update rooms — never remove mid-run to prevent flicker on permanent rooms
+  for (const r of gridRooms) {
+    const col = r.x;
+    const row = FLIP_Y ? (GRID_ROWS - 1 - r.y) : r.y;
+    const cellKey = `${r.x},${r.y}`;
+    const prev = roomDivs[cellKey];
+
+    // Skip if nothing changed for this cell
+    if (prev && prev.key === r.key && prev.doors === r.doors && prev.wr === r.wr) continue;
+
+    let div = prev ? prev.el : null;
+    if (!div) {
+      div = document.createElement('div');
+      div.className = 'room';
+      div.style.left   = (col * CELL) + 'px';
+      div.style.top    = (row * CELL) + 'px';
+      div.style.width  = CELL + 'px';
+      div.style.height = CELL + 'px';
+      mapEl.appendChild(div);
+    }
+    div.title = `${r.key}-${r.doors} (${r.x},${r.y}) wr=${r.wr}`;
+    div.innerHTML = '';
+    div.appendChild(buildRoomImg(r.key, r.doors, r.wr));
+    roomDivs[cellKey] = { el: div, key: r.key, doors: r.doors, wr: r.wr };
+  }
+
+  // Player marker — reuse existing element, just move it
+  let playerEl = document.getElementById('player');
+  if (!playerEl) {
+    playerEl = document.createElement('div');
+    playerEl.id = 'player';
+    playerEl.style.width  = PLAYER_SIZE + 'px';
+    playerEl.style.height = PLAYER_SIZE + 'px';
+    const pImg = document.createElement('img');
+    pImg.src = TEXTURE_PATH + 'Icon_Player.png';
+    pImg.onerror = () => { pImg.src = TEXTURE_PATH + 'Button Not Found.png'; pImg.onerror = null; };
+    playerEl.appendChild(pImg);
+    mapEl.appendChild(playerEl);
+  }
+  const offset = (CELL - PLAYER_SIZE) / 2;
+  const px = map.player_x;
+  const py = FLIP_Y ? (GRID_ROWS - 1 - map.player_y) : map.player_y;
+  playerEl.style.left = (px * CELL + offset) + 'px';
+  playerEl.style.top  = (py * CELL + offset) + 'px';
+}
+
+function poll() {
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', STATS_PATH + '?_=' + Date.now(), true);
+  xhr.overrideMimeType('application/json');
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState !== 4) return;
+    if (xhr.status === 0 || xhr.status === 200) {
+      try { render(JSON.parse(xhr.responseText)); } catch (_) {}
+    }
+  };
+  xhr.onerror = function () {};
+  xhr.send();
+}
+
+loadOverrides();
+setInterval(poll, POLL_MS);
+poll();
+</script>
+</body>
+</html>

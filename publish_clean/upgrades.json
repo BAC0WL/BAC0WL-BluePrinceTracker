@@ -1,0 +1,145 @@
+{
+  "_comment": "Upgrade remaps: when a save slot has 'Upgrade X' > 0, replace the base room key with the variant key.",
+  "_comment2": "Only rooms where ALL variants share the same mesh (same key from memory) need an entry here.",
+  "_comment3": "base_key = what the reader produces from memory. variants = { int_value: replacement_key }.",
+  "BrickWall-GreenHouse": {
+    "base_key": "greenhouse",
+    "variants": {
+      "1": "greenhouse-secret"
+    }
+  },
+  "Upgrade Guest Bedroom": {
+    "base_key": "guestbedroom",
+    "variants": {
+      "1": "guestbedroom-guess",
+      "2": "guestbedroom-quest",
+      "3": "guestbedroom-geist"
+    }
+  },
+  "Upgrade Aquarium": {
+    "base_key": "aquarium",
+    "variants": {
+      "1": "aquarium-goldfish",
+      "2": "aquarium-starfish",
+      "3": "aquarium-eel"
+    }
+  },
+  "Upgrade Billiard": {
+    "base_key": "billiardroom",
+    "variants": {
+      "1": "billiardroom-speakeasy",
+      "2": "billiardroom-breakroom",
+      "3": "billiardroom-poolhallC"
+    }
+  },
+  "Upgrade Boudoir": {
+    "base_key": "boudoir",
+    "variants": {
+      "1": "boudoir",
+      "2": "boudoir",
+      "3": "boudoir"
+    }
+  },
+  "Upgrade Bunk Room": {
+    "base_key": "bunkroom",
+    "variants": {
+      "1": "bunkroom",
+      "2": "bunkroom",
+      "3": "bunkroom"
+    }
+  },
+  "Upgrade Cloister": {
+    "base_key": "cloister",
+    "variants": {
+      "1": "cloisterofdauja",
+      "2": "cloisterofdraxus",
+      "3": "cloisterofjoya",
+      "4": "cloisteroflydia",
+      "5": "cloisterofmila",
+      "6": "cloisteroforinda",
+      "7": "cloisterofrynna",
+      "8": "cloisterofveia"
+    }
+  },
+  "Upgrade Closet": {
+    "base_key": "closet",
+    "variants": {
+      "1": "closet-hall",
+      "2": "closet-bed",
+      "3": "closet-empty"
+    }
+  },
+  "Upgrade Courtyard": {
+    "base_key": "courtyard",
+    "variants": {
+      "1": "courtyard",
+      "2": "courtyard",
+      "3": "corriyard"
+    }
+  },
+  "Upgrade Hallway": {
+    "base_key": "hallway",
+    "variants": {
+      "1": "hallway",
+      "2": "hallway",
+      "3": "hallway-4keys"
+    }
+  },
+  "Upgrade Mail Room": {
+    "base_key": "mailroom",
+    "variants": {
+      "1": "mailroom",
+      "2": "mailroom",
+      "3": "mailroom"
+    }
+  },
+  "Upgrade Nook": {
+    "base_key": "nook",
+    "variants": {
+      "1": "nook",
+      "2": "nook-breakfast",
+      "3": "nook-reading"
+    }
+  },
+  "Upgrade Nursery": {
+    "base_key": "nursery",
+    "variants": {
+      "1": "nursery-10",
+      "2": "nursesstation",
+      "3": "nursery-indoor"
+    }
+  },
+  "Upgrade Parlor": {
+    "base_key": "parlor",
+    "variants": {
+      "1": "parlor",
+      "2": "parlor",
+      "3": "parlor-funeral"
+    }
+  },
+  "Upgrade Spare Room": {
+    "base_key": "spareroom",
+    "variants": {
+      "1": "sparebedroom",
+      "2": "sparegreenroom",
+      "3": "sparehall",
+      "4": "spareroom-servants",
+      "5": "spareroom-ladyships",
+      "6": "spareroom-master",
+      "7": "spareroom-foyer",
+      "8": "spareroom-secret",
+      "9": "spareroom-greathall",
+      "10": "spareroom-veranda",
+      "11": "spareroom-terrace",
+      "12": "spareroom-patio"
+    }
+  },
+  "Upgrade Storeroom": {
+    "base_key": "storeroom",
+    "variants": {
+      "1": "storeroom",
+      "2": "storeroom",
+      "3": "storeroom"
+    }
+  }
+}

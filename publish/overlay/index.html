@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Blue Prince Tracker</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: transparent;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    #overlay {
+      display: inline-block;
+      background: linear-gradient(160deg, rgba(4, 8, 22, 0.90), rgba(6, 14, 32, 0.86));
+      border: 1px solid rgba(60, 120, 220, 0.45);
+      border-radius: 8px;
+      padding: 8px 10px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+    }
+
+    /* ── Two-panel layout ── */
+    .panels {
+      display: flex;
+      gap: 0;
+    }
+
+    .panel-left {
+      flex: 1;
+      padding-right: 8px;
+    }
+
+    .panel-right {
+      flex: 1;
+      padding-left: 8px;
+      border-left: 1px solid rgba(60, 120, 220, 0.2);
+    }
+
+    /* ── header ── */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+      border-bottom: 1px solid rgba(60, 120, 220, 0.2);
+      padding-bottom: 6px;
+    }
+
+    .title {
+      font-size: 10px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: rgba(80, 150, 240, 0.75);
+      font-weight: 600;
+    }
+
+    .day-badge {
+      font-size: 13px;
+      font-weight: 700;
+      color: #c8dff5;
+    }
+
+    .day-badge.offline {
+      color: rgba(200, 80, 60, 0.8);
+      font-size: 11px;
+    }
+
+    /* ── slot switcher (inline in header) ── */
+    .header-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .slot-btn {
+      font-size: 9px;
+      font-family: monospace;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.55);
+      border-radius: 3px;
+      padding: 1px 6px;
+      cursor: pointer;
+    }
+
+    .slot-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
+
+    .slot-btn.active {
+      background: rgba(180, 140, 50, 0.35);
+      border-color: rgba(180, 140, 50, 0.55);
+      color: #f0e8d0;
+    }
+
+    /* ── rooms ── */
+    .rooms-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .rooms-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(200, 220, 240, 0.35);
+    }
+
+    .rooms-val {
+      font-size: 23px;
+      font-weight: 700;
+      color: #c8dff5;
+    }
+
+    .rooms-estate {
+      font-size: 15px;
+      font-style: italic;
+      color: rgba(200, 220, 240, 0.45);
+    }
+
+    .rooms-estate.facing {
+      font-style: normal;
+      font-weight: 700;
+      color: #c8dff5;
+    }
+
+    .dayend-achievements {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+      margin-left: auto;
+    }
+
+    .dayend-img {
+      height: 32px;
+      width: auto;
+      image-rendering: crisp-edges;
+    }
+
+    .prefix-icons {
+      display: inline-flex;
+      gap: 3px;
+      align-items: center;
+    }
+
+    .prefix-icon {
+      height: 16px;
+      width: auto;
+      cursor: help;
+      image-rendering: crisp-edges;
+    }
+
+
+    /* ── section header ── */
+    .section-title {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgb(6, 214, 169);
+      margin: 7px 0 4px;
+      border-bottom: 1px solid rgba(60, 120, 220, 0.1);
+      padding-bottom: 3px;
+    }
+
+    /* ── Dir grid (2 cols) ── */
+    .dir-table {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 6px;
+    }
+
+    .dir-row {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin-bottom: 4px;
+    }
+
+    .dir-count {
+      font-size: 20px;
+      font-family: monospace;
+      color: rgba(200, 220, 240, 0.6);
+      flex: 1;
+      text-align: center;
+    }
+
+    /* ── Category icon / text fallback ── */
+    .cat-icon {
+      height: 48px;
+      width: auto;
+      display: block;
+      flex-shrink: 0;
+      image-rendering: crisp-edges;
+    }
+
+    .cat-icon-fallback {
+      font-size: 9px;
+      color: rgba(200, 220, 240, 0.45);
+      flex-shrink: 0;
+    }
+
+    /* ── Unique / Count 2-col table ── */
+    .cat-table {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 6px;
+    }
+
+    .cat-row {
+      display: flex;
+      align-items: center;
+      gap: 1px;
+      margin-bottom: 2px;
+    }
+
+    .cat-spacer {
+      flex: 1;
+    }
+
+    .cat-now {
+      font-size: 23px;
+      font-weight: 700;
+      font-family: monospace;
+      color: #c0d8f0;
+      min-width: 30px;
+      text-align: center;
+    }
+
+    .cat-best {
+      font-size: 18px;
+      font-family: monospace;
+      color: rgba(80, 150, 240, 0.45);
+      min-width: 26px;
+      text-align: center;
+    }
+
+    /* ── Misc 2-column table (3 rows × 2 cols) ── */
+    .misc-table {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 6px;
+    }
+
+    /* ── Floorplan breakdown tooltip ── */
+    .fp-tooltip {
+      position: fixed;
+      background: rgba(4, 8, 22, 0.97);
+      border: 1px solid rgba(60, 120, 220, 0.45);
+      border-radius: 4px;
+      padding: 5px 8px;
+      font-size: 10px;
+      font-family: monospace;
+      z-index: 1000;
+      pointer-events: none;
+      line-height: 1.7;
+    }
+
+    .fp-tt-label {
+      color: rgba(200, 220, 240, 0.5);
+    }
+
+    .fp-tt-count {
+      color: #c0d8f0;
+      font-weight: 700;
+    }
+
+    /* ── Chess-in-a-day state icon ── */
+    .chess-state {
+      height: 48px;
+      width: auto;
+      display: block;
+      flex-shrink: 0;
+      image-rendering: crisp-edges;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="fp-tooltip" class="fp-tooltip" style="display:none;"></div>
+  <div id="overlay">
+    <div class="header">
+      <span class="title">Blue Prince</span>
+      <span class="day-badge offline" id="day-badge">Not connected</span>
+      <span class="header-group">
+        <button class="slot-btn" data-slot="0" onclick="setSlot(0)">Auto</button>
+        <button class="slot-btn" data-slot="1" onclick="setSlot(1)">1</button>
+        <button class="slot-btn" data-slot="2" onclick="setSlot(2)">2</button>
+        <button class="slot-btn" data-slot="3" onclick="setSlot(3)">3</button>
+        <button class="slot-btn" data-slot="4" onclick="setSlot(4)">4</button>
+      </span>
+    </div>
+
+    <div id="dayend-debug"
+      style="font-size:10px;color:yellow;margin-bottom:3px;font-family:monospace;line-height:1.4;display:none">
+    </div>
+    <div class="section-title">Estate Titles</div>
+    <div class="rooms-row">
+      <span class="rooms-label">Rooms</span>
+      <span class="rooms-val" id="rooms-val">—</span>
+      <span class="rooms-estate" id="rooms-estate"></span>
+      <span class="prefix-icons" id="prefix-icons"></span>
+      <span class="dayend-achievements" id="dayend-achievements"></span>
+    </div>
+
+
+    <div class="panels">
+      <div class="panel-left">
+        <div class="section-title">Directories</div>
+        <div class="dir-table" id="dirs"></div>
+
+        <div class="section-title">Unique Counts</div>
+        <div class="cat-table" id="unique-table"></div>
+
+        <div class="section-title">Counts</div>
+        <div class="cat-table" id="counts-table"></div>
+      </div>
+
+      <div class="panel-right">
+        <div class="section-title">Chess Directories</div>
+        <div class="dir-table" id="chess-dirs"></div>
+
+        <div class="section-title">Chess in a Day</div>
+        <div class="cat-table" id="chess-day-table"></div>
+
+        <div class="section-title">Misc (Some update on day end)</div>
+        <div class="misc-table" id="misc-table"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STATS_FILE = '../tracker_stats.json';
+    const TYPES_FILE = '../room-types.json';
+    const UPGRADES_FILE = '../upgrades.json';
+    const POLL_MS = 500;
+    const CTRL = 'http://localhost:5799';
+
+    const DEBUG = false; // set to true to show the day-end debug readout
+    document.getElementById('dayend-debug').style.display = DEBUG ? '' : 'none';
+
+    // ── Prefix title helpers ──────────────────────────────────────────────────────
+    const LADYSHIP_ROOMS = ['observatory', 'herladyshipschamber', 'westwinghall', 'walkincloset', 'boudoir'];
+    const SPORTS_ROOMS = ['lockerroom', 'gymnasium', 'thepool', 'weightroom'];
+    const CORPORATE_ROOMS = ['conferenceroom', 'office', 'mailroom'];
+    const MUSIC_ROOMS = ['musicroom', 'ballroom'];
+    const THRONEROOM = ['throneroom'];
+
+    const PREFIXES = [
+      {
+        id: 'herladyships', icon: 'icons/prefix-herladyships.webp', tip: "Her Ladyship's",
+        iconCond: (r, n, ok) => countFrom(r, LADYSHIP_ROOMS) >= 4,
+        shutoffCond: (r, n, ok) => countFrom(r, LADYSHIP_ROOMS) >= 5
+      },
+      {
+        id: 'music', icon: 'icons/prefix-herladyships.webp', tip: "Her Ladyship's",
+        iconCond: (r, n, ok) => countFrom(r, MUSIC_ROOMS) >= 90,
+        shutoffCond: (r, n, ok) => countFrom(r, MUSIC_ROOMS) >= 2
+      },
+      {
+        id: 'garden', icon: 'icons/prefix-garden.webp', tip: 'One more green room',
+        iconCond: (r, n, ok) => countUniqueCat(r, 'GreenRoom') >= thresh(2, n, true),
+        shutoffCond: (r, n, ok) => countUniqueCat(r, 'GreenRoom') >= 4
+      },
+      {
+        id: 'sports', icon: 'icons/prefix-sports.webp', tip: 'Locker Room, Pool, Weight Room, Gymnasium',
+        iconCond: (r, n, ok) => countFrom(r, SPORTS_ROOMS) >= 3,
+        shutoffCond: (r, n, ok) => countFrom(r, SPORTS_ROOMS) >= 4
+      },
+      {
+        id: 'sacred', icon: 'icons/prefix-sacred.webp', tip: 'Cloister, Chapel, Shrine',
+        iconCond: (r, n, ok) => (ok === null || ok === 'shrine') && sacredCount(r, ok) >= 2,
+        shutoffCond: (r, n, ok) => sacredCount(r, ok) >= 3
+      },
+      {
+        id: 'academic', icon: 'icons/prefix-academic.webp', tip: 'One more classroom',
+        iconCond: (r, n, ok) => countInstances(r, 'classroom') >= 2,
+        shutoffCond: (r, n, ok) => countInstances(r, 'classroom') >= 3
+      },
+      {
+        id: 'corporate', icon: 'icons/prefix-corporate.webp', tip: 'Conference Room, Office, Mail Room',
+        iconCond: (r, n, ok) => countFrom(r, CORPORATE_ROOMS) >= 2,
+        shutoffCond: (r, n, ok) => countFrom(r, CORPORATE_ROOMS) >= 3
+      },
+      {
+        id: 'throneroom', icon: 'icons/prefix-corporate.webp', tip: 'Conference Room, Office, Mail Room',
+        iconCond: (r, n, ok) => countFrom(r, THRONEROOM) >= 2,
+        shutoffCond: (r, n, ok) => countFrom(r, THRONEROOM) >= 1
+      },
+      {
+        id: 'architects', icon: 'icons/prefix-architects.webp', tip: "Architect's",
+        iconCond: (r, n, ok) => countUniqueCat(r, 'Drafting') >= thresh(3, n, true, true),
+        shutoffCond: (r, n, ok) => countUniqueCat(r, 'Drafting') >= 6
+      },
+      {
+        id: 'temporal', icon: 'icons/prefix-temporal.webp', tip: 'One more tomorrow room',
+        iconCond: (r, n, ok) => countUniqueCat(r, 'Tomorrow') >= 3,
+        shutoffCond: (r, n, ok) => countUniqueCat(r, 'Tomorrow') >= 4
+      },
+      {
+        id: 'red', icon: 'icons/prefix-red.webp', tip: 'One more red room',
+        iconCond: (r, n, ok) => countUniqueCat(r, 'RedRoom') >= thresh(3, n, true, true),
+        shutoffCond: (r, n, ok) => countUniqueCat(r, 'RedRoom') >= 6
+      },
+      {
+        id: 'perplexing', icon: 'icons/prefix-perplexing.webp', tip: 'One more puzzle room',
+        iconCond: (r, n, ok) => countUniqueCat(r, 'Puzzle') === 2
+          && (runSeenKeys.has('giftshop') || hasRoom(r, 'chamberofmirrors')),
+        shutoffCond: (r, n, ok) => countUniqueCat(r, 'Puzzle') >= 3
+      },
+      {
+        id: 'clockwork', icon: 'icons/prefix-clockwork.webp', tip: 'One more mechanical room',
+        iconCond: (r, n, ok) => countUniqueCat(r, 'Mechanical') >= thresh(4, n, false, true),
+        shutoffCond: (r, n, ok) => countUniqueCat(r, 'Mechanical') >= 6
+      },
+    ];
+
+    function thresh(base, n, r20 = false, r36 = false) {
+      return base + (r20 && n >= 20 ? 1 : 0) + (r36 && n >= 36 ? 1 : 0);
+    }
+    function countUniqueCat(rooms, cat) {
+      const seen = new Set();
+      for (const r of rooms) {
+        if (r.x === -1) continue;
+        if ((roomTypes[r.key] ?? {})[cat] == null) continue;
+        seen.add(dirBase(r.key));
+      }
+      return seen.size;
+    }
+    function countFrom(rooms, keys) {
+      const present = new Set();
+      for (const r of rooms) {
+        if (r.x === -1) continue;
+        const b = dirBase(r.key);
+        if (keys.includes(b)) present.add(b);
+      }
+      return present.size;
+    }
+    function countInstances(rooms, baseKey) {
+      return rooms.filter(r => r.x !== -1 && dirBase(r.key) === baseKey).length;
+    }
+    function hasRoom(rooms, baseKey) {
+      return rooms.some(r => r.x !== -1 && dirBase(r.key) === baseKey);
+    }
+    function sacredCount(rooms, outerKey) {
+      let n = countFrom(rooms, ['shrine', 'chapel', 'cloister']);
+      if (outerKey === 'shrine' && !hasRoom(rooms, 'shrine')) n++;
+      return n;
+    }
+    function isHardShutoff(rooms, n, outerKey) {
+      if (countFrom(rooms, LADYSHIP_ROOMS) >= 5) return true;
+      if (countUniqueCat(rooms, 'GreenRoom') >= 4) return true;
+      if (countFrom(rooms, SPORTS_ROOMS) >= 4) return true;
+      if (sacredCount(rooms, outerKey) >= 3) return true;
+      if (countInstances(rooms, 'classroom') >= 4) return true;
+      return false;
+    }
+
+    // ── Estate title by room count ────────────────────────────────────────────────
+    function getEstateTitle(n) {
+      if (n < 5) return 'Abandoned Project';
+      if (n <= 6) return 'Pitiful';
+      if (n <= 8) return 'Cramped';
+      if (n <= 10) return 'Humble';
+      if (n <= 12) return 'Snug Little';
+      if (n <= 14) return 'Small';
+      if (n <= 16) return 'Quaint';
+      if (n <= 18) return 'Cozy';
+      if (n <= 20) return 'Charming';
+      if (n <= 22) return 'Rustic';
+      if (n <= 24) return 'Mid-Sized';
+      if (n <= 26) return 'Ordinary';
+      if (n <= 28) return 'Prosaic';
+      if (n <= 30) return 'Respectable';
+      if (n <= 32) return 'Sizeable';
+      if (n <= 34) return 'Stately';
+      if (n <= 36) return 'Impressive';
+      if (n <= 38) return 'Grand';
+      if (n <= 40) return 'Baronial';
+      if (n === 41) return 'Lavish';
+      if (n === 42) return 'Opulent';
+      if (n === 43) return 'Palatial';
+      if (n === 44) return 'Resplendent';
+      return 'Perfect';
+    }
+
+    const DAYEND_TRIGGERS = [
+      { key: 'ordinary', title: 'Ordinary', icon: 'icons/dayend-ordinary.webp' },
+      { key: 'respectable', title: 'Respectable', icon: 'icons/dayend-respectable.webp' },
+      { key: 'sizeable', title: 'Sizeable', icon: 'icons/dayend-sizeable.webp' },
+      { key: 'westfacing', title: 'West Facing', icon: 'icons/dayend-westfacing.webp' },
+      { key: 'eastfacing', title: 'East Facing', icon: 'icons/dayend-eastfacing.webp' },
+    ];
+
+    // ── Category definitions ──────────────────────────────────────────────────────
+    const DIR_CATS = ['BedroomDir', 'GreenRoomDir', 'HallwayDir', 'ShopDir', 'RedRoomDir', 'OuterRoomDir'];
+    const UNIQUE_CATS = ['Bedroom', 'Blackprint', 'Hallway', 'GreenRoom', 'Shop', 'RedRoom'];
+    const COUNT_CATS = ['Blueprint', 'Puzzle', 'Mechanical', 'Tomorrow', 'DeadEnd', 'Drafting'];
+    const CHESS_DIR_CATS = ['Pawn', 'Bishop', 'Knight', 'Rook', 'King'];
+    const CHESS_DAY_CATS = ['Pawn', 'Bishop', 'Knight', 'Rook', 'King', 'Queen'];
+    const CHESS_TOTALS = { Pawn: 16, Bishop: 4, Knight: 4, Rook: 4, King: 2 };
+
+    // ── Icon maps ─────────────────────────────────────────────────────────────────
+    // Left-panel category icons (dirs, unique, counts)
+    const CAT_ICON = {
+      BedroomDir: 'icons/directorybedroom.webp',
+      GreenRoomDir: 'icons/directorygreenroom.webp',
+      HallwayDir: 'icons/directoryhallway.webp',
+      ShopDir: 'icons/directoryshop.webp',
+      RedRoomDir: 'icons/directoryredroom.webp',
+      OuterRoomDir: 'icons/directoryouterroom.webp',
+      Bedroom: 'icons/daybedroom.webp',
+      Blackprint: 'icons/dayblackprints.webp',
+      Hallway: 'icons/dayhallway.webp',
+      GreenRoom: 'icons/daygreenroom.webp',
+      Shop: 'icons/dayshop.webp',
+      RedRoom: 'icons/dayredroom.webp',
+      Blueprint: 'icons/dayblueprint.webp',
+      Puzzle: 'icons/daypuzzle.webp',
+      Mechanical: 'icons/daymechanical.webp',
+      Tomorrow: 'icons/daytomorrow.webp',
+      DeadEnd: 'icons/daydeadend.webp',
+      Drafting: 'icons/daydrafting.webp',
+    };
+
+    // Chess directory icons (right panel, top section)
+    // Files: chessdir-pawn.webp, chessdir-bishop.webp, chessdir-knight.webp,
+    //        chessdir-rook.webp, chessdir-king.webp
+    const CHESS_DIR_ICON = {
+      Pawn: 'icons/directorypawn.webp',
+      Bishop: 'icons/directorybishop.webp',
+      Knight: 'icons/directoryknight.webp',
+      Rook: 'icons/directoryrook.webp',
+      King: 'icons/directoryking.webp',
+    };
+
+    // Chess-in-a-day: off icon (count=0), on icon (count>=1)
+    // Files: chess-pawn-off.webp / chess-pawn-on.webp  (bishop/knight/rook/queen/king same pattern)
+    const CHESS_DAY_ICON_OFF = {
+      Pawn: 'icons/chess-pawn-off.webp',
+      Bishop: 'icons/chess-bishop-off.webp',
+      Knight: 'icons/chess-knight-off.webp',
+      Rook: 'icons/chess-rook-off.webp',
+      Queen: 'icons/chess-queen-off.png',
+      King: 'icons/chess-king-off.png',
+    };
+    const CHESS_DAY_ICON_ON = {
+      Pawn: 'icons/chess-pawn-on.png',
+      Bishop: 'icons/chess-bishop-on.png',
+      Knight: 'icons/chess-knight-on.png',
+      Rook: 'icons/chess-rook-on.png',
+      Queen: 'icons/chess-queen-on.png',
+      King: 'icons/chess-king-on.png',
+    };
+
+    // ── Misc section ─────────────────────────────────────────────────────────────
+    const MISC_CATS = ['MoraJai', 'Allowance', 'Contraptions', 'UpgradeDiscs', 'CabinetKeys', 'Floorplans'];
+
+    const MISC_ICON = {
+      MoraJai: 'icons/misc-morajai.webp',
+      Allowance: 'icons/misc-allowance.webp',
+      Contraptions: 'icons/misc-contraptions.webp',
+      UpgradeDiscs: 'icons/misc-upgradediscs.webp',
+      CabinetKeys: 'icons/misc-cabinetkeys.webp',
+      Floorplans: 'icons/misc-floorplans.webp',
+    };
+
+    const MISC_LABEL = {
+      MoraJai: 'Mora Jai Box',
+      Allowance: 'Allowance',
+      Contraptions: 'Contraptions',
+      UpgradeDiscs: 'Upgrade Discs',
+      CabinetKeys: 'Cabinet Keys',
+      Floorplans: 'Permanent Floorplans',
+    };
+
+    const CRAFTED_KEYS = [
+      'Crafted_PowerHammer', 'Crafted_JackHammer', 'Crafted_LuckyPurse',
+      'Crafted_DowsingRod', 'Crafted_Electromagnet', 'Crafted_PicksoundAmplified',
+      'Crafted_DetectorShovel', 'Crafted_BurningGlass',
+    ];
+
+    const UPGRADE_DISK_KEYS = [
+      'Upgrade_Disk_Room_StoreRoom_used', 'Upgrade_Disk_Room_SpareRoom_used',
+      'Upgrade_Disk_Room_SpareRoom2_used', 'Upgrade_Disk_Room_Courtyard_used',
+      'Upgrade_Disk_Room_MailRoom_used', 'Upgrade_Disk_Room_BunkRoom_used',
+      'Upgrade_Disk_Room_Closet_used', 'Upgrade_Disk_Room_Hallway_used',
+      'Upgrade_Disk_Room_Boudoir_used', 'Upgrade_Disk_Room_Parlor_used',
+      'Upgrade_Disk_Room_BilliardRoom_used', 'Upgrade_Disk_Room_GuestBedroom_used',
+      'Upgrade_Disk_Room_Nursery_used', 'Upgrade_Disk_Room_Aquarium_used',
+      'Upgrade_Disk_Room_Nook_used', 'Upgrade_Disk_Room_Cloister_used',
+    ];
+
+    const FLOORPLAN_FOUND_KEYS = [
+      'Conservatory_Floorplan_Found', 'Planetarium_Floorplan_Found',
+      'Lost_and_Found_Floorplan_Found', 'Treasure_Trove_Floorplan_Found',
+      'Throne_Room_Floorplan_Found', 'Mechanarium_Floorplan_Found',
+      'Tunnel_Floorplan_Found', 'Closed_Exhibit_Floorplan_Found',
+    ];
+
+    const STUDIO_ADDED_KEYS = [
+      'Dovecote_Added', 'Kennel_Added', 'Casino_Added', 'Clocktower_Added',
+      'Classroom_Added', 'Solarium_Added', 'Vestibule_Added', 'Dormitory_Added',
+    ];
+
+    const CABINET_DAY_KEYS = [
+      'Cabinet_1_opened', 'Cabinet_2_opened',
+    ];
+
+    // Text fallbacks (shown if image fails to load or path missing)
+    const CAT_LABEL = {
+      BedroomDir: 'Bedroom Dir', GreenRoomDir: 'Green Room Dir',
+      HallwayDir: 'Hallway Dir', ShopDir: 'Shop Dir',
+      RedRoomDir: 'Red Room Dir', OuterRoomDir: 'Outer Dir',
+      DeadEnd: 'Dead End', GreenRoom: 'Green Room',
+      RedRoom: 'Red Room',
+    };
+
+    // ── Variant → base key for deduplication (rooms the reader distinguishes directly) ─
+    const DIR_VARIANT_MAP = {
+      'courtyard-digs': 'courtyard',
+      'courtyard-gems': 'courtyard',
+      'greenhousesecret': 'greenhouse',
+      'hallway-1key': 'hallway',
+      'hallway-2keys': 'hallway',
+      'boudoir-obs': 'boudoir',
+      'boudoir-par': 'boudoir',
+      'boudoir-walk': 'boudoir',
+      'bunkroom-gems': 'bunkroom',
+      'bunkroom-gold': 'bunkroom',
+      'bunkroom-keys': 'bunkroom',
+      'storeroom-gems': 'storeroom',
+      'storeroom-gold': 'storeroom',
+      'storeroom-keys': 'storeroom',
+      'parlor-3gems': 'parlor',
+      'parlor-windup': 'parlor',
+      'nook-2keys': 'nook',
+      'closet-bed': 'closet',
+      'closet-hall': 'closet',
+      'throneroom-b': 'throneroom',
+      'garage-pierce': 'garage',
+    };
+
+    // ── Static data (loaded once) ─────────────────────────────────────────────────
+    let roomTypes = {};
+    let upgradeBaseMap = {};
+    let dirTotals = {};
+    let dataReady = false;
+
+    // ── Session state (all reset on page refresh) ─────────────────────────────────
+    let currentRunId = -1;
+    let runSeenKeys = new Set();
+    let estateNameSuppressed = false;
+    let hardSuppressed = false;
+    let dayEndAchievements = new Set();
+    let lastDayTitle = null;
+    let lastDayWest = false;
+    let lastDayEast = false;
+    let dayEndFired = false;
+    let peakDayN = 0;       // peak room count this day; frozen when rooms start clearing
+    let prevWasAbandoned = true;  // tracks abandoned→active transition to detect day start
+    let currentCounts = {};
+    let bestCounts = {};
+    let chessDayCounts = {};   // { cat: number } — reset on new run
+    let chessDayBests = {};   // { cat: number } — session best
+    let dirSets = {};        // { dirCat:   Set<baseKey> } — accumulates this session
+    let chessSets = {};        // { chessCat: Set<baseKey> } — accumulates this session
+    let lastSaveData = null;          // most recent save section; persists across partial writes
+    let miscCounts = {};              // { cat: number } — current misc values
+    let dayEventsAreFresh = true;     // false after a run ends until day_events observed empty (prevents double-count)
+    let dayEventsNonZeroSeen = false; // true once we've seen stale non-zero events after a run transition
+    let dayEventsFreshHold = 0;       // polls remaining before allClear can flip fresh without non-zero seen
+    let runStartSave = null;          // save baseline captured at run start; detects end-of-day save flush
+
+    // ── Slot switcher ─────────────────────────────────────────────────────────────
+    function setSlot(n) {
+      fetch(CTRL + '/slot?n=' + n).catch(() => { });
+      document.querySelectorAll('.slot-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.slot === String(n)));
+    }
+
+    fetch('../config.json').then(r => r.json()).then(cfg => {
+      const n = cfg.save_slot ?? 0;
+      document.querySelectorAll('.slot-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.slot === String(n)));
+    }).catch(() => {
+      const btn = document.querySelector('.slot-btn[data-slot="0"]');
+      if (btn) btn.classList.add('active');
+    });
+
+    // ── Base-key resolution ───────────────────────────────────────────────────────
+    function dirBase(key) {
+      return DIR_VARIANT_MAP[key] ?? upgradeBaseMap[key] ?? key;
+    }
+
+    // ── XHR helper ────────────────────────────────────────────────────────────────
+    function fetchJson(url, cb) {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url + '?_=' + Date.now(), true);
+      xhr.overrideMimeType('application/json');
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState !== 4) return;
+        if (xhr.status === 0 || xhr.status === 200) {
+          try { cb(JSON.parse(xhr.responseText)); } catch (_) { }
+        }
+      };
+      xhr.send();
+    }
+
+    // ── Load static data ──────────────────────────────────────────────────────────
+    function loadData() {
+      fetchJson(TYPES_FILE, function (rt) {
+        for (const [k, v] of Object.entries(rt))
+          if (!k.startsWith('_') && typeof v === 'object') roomTypes[k] = v;
+
+        fetchJson(UPGRADES_FILE, function (ug) {
+          for (const [, entry] of Object.entries(ug)) {
+            if (!entry || !entry.base_key || !entry.variants) continue;
+            for (const vKey of Object.values(entry.variants))
+              if (typeof vKey === 'string' && vKey !== entry.base_key)
+                upgradeBaseMap[vKey] = entry.base_key;
+          }
+          computeDirTotals();
+          buildUI();
+          updateUI();
+          dataReady = true;
+        });
+      });
+    }
+
+    function computeDirTotals() {
+      const sets = {};
+      for (const [key, cats] of Object.entries(roomTypes)) {
+        const base = dirBase(key);
+        for (const cat of Object.keys(cats)) {
+          if (!cat.endsWith('Dir')) continue;
+          if (!sets[cat]) sets[cat] = new Set();
+          sets[cat].add(base);
+        }
+      }
+      for (const [cat, s] of Object.entries(sets)) dirTotals[cat] = s.size;
+    }
+
+    // ── Icon element factories ────────────────────────────────────────────────────
+    function makeIcon(cat) {
+      return makeIconFrom(CAT_ICON[cat], CAT_LABEL[cat] ?? cat);
+    }
+
+    function makeIconFrom(src, label) {
+      if (!src) {
+        const span = document.createElement('span');
+        span.className = 'cat-icon-fallback'; span.textContent = label; return span;
+      }
+      const img = document.createElement('img');
+      img.className = 'cat-icon'; img.src = src; img.alt = label; img.title = label;
+      img.onerror = function () {
+        const span = document.createElement('span');
+        span.className = 'cat-icon-fallback'; span.textContent = label;
+        img.replaceWith(span);
+      };
+      return img;
+    }
+
+    // ── Build DOM ─────────────────────────────────────────────────────────────────
+    function buildUI() {
+      // Directories — icon + "X / Y", no bar
+      const dirsEl = document.getElementById('dirs');
+      for (const dir of DIR_CATS) {
+        const row = document.createElement('div');
+        row.className = 'dir-row';
+        row.appendChild(makeIcon(dir));
+        const cnt = document.createElement('span');
+        cnt.className = 'dir-count'; cnt.id = 'cnt-' + dir;
+        cnt.textContent = '0 / ' + (dirTotals[dir] ?? 8);
+        row.appendChild(cnt);
+        dirsEl.appendChild(row);
+      }
+
+      // Generic 2-col table: icon + spacer + now + best
+      function buildCatTable(el, cats) {
+        for (const cat of cats) {
+          const row = document.createElement('div'); row.className = 'cat-row';
+          row.appendChild(makeIcon(cat));
+          const sp = document.createElement('span'); sp.className = 'cat-spacer'; row.appendChild(sp);
+          const now = document.createElement('span');
+          now.className = 'cat-now'; now.id = 'now-' + cat; now.textContent = '0'; row.appendChild(now);
+          const best = document.createElement('span');
+          best.className = 'cat-best'; best.id = 'best-' + cat; best.textContent = '—'; row.appendChild(best);
+          el.appendChild(row);
+        }
+      }
+      buildCatTable(document.getElementById('unique-table'), UNIQUE_CATS);
+      buildCatTable(document.getElementById('counts-table'), COUNT_CATS);
+
+      // Chess Directories — icon from CHESS_DIR_ICON + "X / Y"
+      const chessEl = document.getElementById('chess-dirs');
+      for (const cat of CHESS_DIR_CATS) {
+        const row = document.createElement('div'); row.className = 'dir-row';
+        row.appendChild(makeIconFrom(CHESS_DIR_ICON[cat], cat));
+        const cnt = document.createElement('span');
+        cnt.className = 'dir-count'; cnt.id = 'chess-cnt-' + cat;
+        cnt.textContent = '0 / ' + CHESS_TOTALS[cat];
+        row.appendChild(cnt);
+        chessEl.appendChild(row);
+      }
+
+      // Chess in a Day — state icon (off/on) + count + best
+      const chessDayEl = document.getElementById('chess-day-table');
+      for (const cat of CHESS_DAY_CATS) {
+        const row = document.createElement('div'); row.className = 'cat-row';
+        const stateImg = document.createElement('img');
+        stateImg.className = 'chess-state'; stateImg.id = 'chess-state-' + cat;
+        stateImg.src = CHESS_DAY_ICON_OFF[cat]; stateImg.alt = '';
+        row.appendChild(stateImg);
+        const sp = document.createElement('span'); sp.className = 'cat-spacer'; row.appendChild(sp);
+        const now = document.createElement('span');
+        now.className = 'cat-now'; now.id = 'chess-day-now-' + cat; now.textContent = '0'; row.appendChild(now);
+        const best = document.createElement('span');
+        best.className = 'cat-best'; best.id = 'chess-day-best-' + cat; best.textContent = '—'; row.appendChild(best);
+        chessDayEl.appendChild(row);
+      }
+
+      // Misc — icon + spacer + count (no best tracker)
+      const miscEl = document.getElementById('misc-table');
+      for (const cat of MISC_CATS) {
+        const row = document.createElement('div'); row.className = 'cat-row';
+        const miscIcon = makeIconFrom(MISC_ICON[cat], MISC_LABEL[cat]);
+        // Floorplans row uses a custom hover tooltip — disable pointer events on the icon
+        // so the browser's native title tooltip doesn't obscure the breakdown.
+        if (cat === 'Floorplans') miscIcon.style.pointerEvents = 'none';
+        row.appendChild(miscIcon);
+        const now = document.createElement('span');
+        now.className = 'cat-now'; now.id = 'misc-now-' + cat; now.textContent = '0';
+        now.style.flex = '1';
+        row.appendChild(now);
+        miscEl.appendChild(row);
+
+        if (cat === 'Floorplans') {
+          row.style.cursor = 'default';
+          const tt = document.getElementById('fp-tooltip');
+          row.addEventListener('mouseenter', function () {
+            const found = miscCounts['_fp_found'] ?? 0;
+            const studio = miscCounts['_fp_studio'] ?? 0;
+            const chamber = miscCounts['_fp_chamber'] ?? 0;
+            tt.innerHTML =
+              '<div><span class="fp-tt-label">Found Floorplans&nbsp;&nbsp;&nbsp;</span><span class="fp-tt-count">' + found + '</span></div>' +
+              '<div><span class="fp-tt-label">Studio Additions&nbsp;&nbsp;&nbsp;</span><span class="fp-tt-count">' + studio + '</span></div>' +
+              '<div><span class="fp-tt-label">Chamber Additions&nbsp;</span><span class="fp-tt-count">' + chamber + '</span></div>';
+            const rect = row.getBoundingClientRect();
+            tt.style.display = 'block';
+            tt.style.left = rect.left + 'px';
+            tt.style.top = (rect.bottom + 3) + 'px';
+          });
+          row.addEventListener('mouseleave', function () { tt.style.display = 'none'; });
+        }
+      }
+    }
+
+    // ── Count computation ─────────────────────────────────────────────────────────
+    function computeHouseCounts(rooms) {
+      const counts = {};
+      const seen = {};
+
+      for (const r of rooms) {
+        const key = r.key;
+        const base = dirBase(key);
+        const cats = roomTypes[key] ?? {};
+
+        for (const [cat, val] of Object.entries(cats)) {
+          if (cat === 'DraftingStudio' || cat === 'draftingstudio') continue;
+          if (cat.endsWith('Dir')) continue;
+          if (CHESS_DAY_CATS.includes(cat)) continue;
+
+          if (UNIQUE_CATS.includes(cat)) {
+            if (!seen[cat]) seen[cat] = new Set();
+            if (seen[cat].has(base)) continue;  // deduplicate by base key so room + upgrade count as one
+            seen[cat].add(base);
+          }
+          counts[cat] = (counts[cat] ?? 0) + val;
+        }
+      }
+      return counts;
+    }
+
+    function mergeDirRooms(rooms) {
+      for (const r of rooms) {
+        const cats = roomTypes[r.key] ?? {};
+        const base = dirBase(r.key);
+        for (const cat of Object.keys(cats)) {
+          if (!cat.endsWith('Dir')) continue;
+          if (!dirSets[cat]) dirSets[cat] = new Set();
+          dirSets[cat].add(base);
+        }
+      }
+    }
+
+    function computeChessDayCounts(rooms) {
+      const counts = {};
+      for (const r of rooms) {
+        const cats = roomTypes[r.key] ?? {};
+        for (const cat of CHESS_DAY_CATS) {
+          if (cats[cat] != null) counts[cat] = (counts[cat] ?? 0) + cats[cat];
+        }
+      }
+      return counts;
+    }
+
+    function mergeChessRooms(rooms) {
+      for (const r of rooms) {
+        const cats = roomTypes[r.key] ?? {};
+        const base = dirBase(r.key);
+        for (const cat of CHESS_DIR_CATS) {
+          if (cats[cat] == null) continue;
+          if (!chessSets[cat]) chessSets[cat] = new Set();
+          chessSets[cat].add(base);
+        }
+      }
+    }
+
+    // ── Misc count computation ────────────────────────────────────────────────────
+    function computeMiscCounts(saveData, runEvents, runId, dayEvents, dayEventsFresh) {
+      const inRun = (runId ?? 0) > 0 && dayEventsFresh;
+      const counts = {};
+
+      // Mora Jai Boxes: count of MJB booleans set to 1 in save
+      counts['MoraJai'] = saveData && saveData.mjb
+        ? Object.values(saveData.mjb).reduce((s, v) => s + (v ? 1 : 0), 0) : 0;
+
+      // Allowance Tokens: MJB count + bonus booleans + room8 lifetime drafts
+      if (saveData) {
+        const ab = saveData.allowance_bonus ?? {};
+        const bonuses = (ab.cloister_allowance ? 1 : 0)
+          + (ab.opened_149 ? 1 : 0)
+          + (ab.opened_233 ? 1 : 0)
+          + (ab.entrance_hall ? 1 : 0)
+          + (ab.room8_solved ? 1 : 0);
+        counts['Allowance'] = counts['MoraJai'] + bonuses + (saveData.room8_drafted ?? 0);
+      } else {
+        counts['Allowance'] = 0;
+      }
+
+      // Contraptions: save baseline (lifetime unique types) + new types this run (day_events)
+      counts['Contraptions'] = (saveData ? (saveData.contraptions_save ?? 0) : 0)
+        + (inRun ? CRAFTED_KEYS.reduce((s, k) => s + ((dayEvents && dayEvents[k] > 0) ? 1 : 0), 0) : 0);
+
+      // Upgrade Discs: save baseline (lifetime total) + discs used today (day_events, resets each day)
+      counts['UpgradeDiscs'] = (saveData ? (saveData.upgrade_discs_save ?? 0) : 0)
+        + (inRun ? UPGRADE_DISK_KEYS.reduce((s, k) => s + (dayEvents ? (dayEvents[k] ?? 0) : 0), 0) : 0);
+
+      // Cabinet Keys: save baseline (c3/c4/c5) + cabinets opened this run via day_events
+      const cabinetSave = saveData && saveData.cabinet
+        ? ((saveData.cabinet.c3 ? 1 : 0) + (saveData.cabinet.c4 ? 1 : 0) + (saveData.cabinet.c5 ? 1 : 0))
+        : 0;
+      counts['CabinetKeys'] = cabinetSave
+        + (inRun ? CABINET_DAY_KEYS.reduce((s, k) => s + ((dayEvents && dayEvents[k] > 0) ? 1 : 0), 0) : 0);
+
+      // Permanent Floorplans: found + studio use day_events (same as upgrade discs)
+      const fpFound = (saveData ? (saveData.fp_found_save ?? 0) : 0)
+        + (inRun ? FLOORPLAN_FOUND_KEYS.reduce((s, k) => s + ((dayEvents && dayEvents[k] > 0) ? 1 : 0), 0) : 0);
+      const fpStudio = (saveData ? (saveData.fp_studio_save ?? 0) : 0)
+        + (inRun ? STUDIO_ADDED_KEYS.reduce((s, k) => s + ((dayEvents && dayEvents[k] > 0) ? 1 : 0), 0) : 0);
+      const fpChamber = saveData ? (saveData.chamber_additions ?? 0) : 0;
+      counts['Floorplans'] = fpFound + fpStudio + fpChamber;
+      counts['_fp_found'] = fpFound;
+      counts['_fp_studio'] = fpStudio;
+      counts['_fp_chamber'] = fpChamber;
+
+      return counts;
+    }
+
+    // ── Bests ─────────────────────────────────────────────────────────────────────
+    function updateBests() {
+      for (const cat of [...UNIQUE_CATS, ...COUNT_CATS]) {
+        const cur = currentCounts[cat] ?? 0;
+        if (cur > (bestCounts[cat] ?? 0)) bestCounts[cat] = cur;
+      }
+      for (const cat of CHESS_DAY_CATS) {
+        const cur = chessDayCounts[cat] ?? 0;
+        if (cur > (chessDayBests[cat] ?? 0)) chessDayBests[cat] = cur;
+      }
+    }
+
+    // ── Refresh DOM ───────────────────────────────────────────────────────────────
+    function updateUI() {
+      for (const dir of DIR_CATS) {
+        const el = document.getElementById('cnt-' + dir);
+        if (el) el.textContent = (dirSets[dir] ? dirSets[dir].size : 0) + '/' + (dirTotals[dir] ?? 8);
+      }
+      for (const cat of CHESS_DIR_CATS) {
+        const el = document.getElementById('chess-cnt-' + cat);
+        if (el) el.textContent = (chessSets[cat] ? chessSets[cat].size : 0) + '/' + CHESS_TOTALS[cat];
+      }
+      for (const cat of [...UNIQUE_CATS, ...COUNT_CATS]) {
+        const nowEl = document.getElementById('now-' + cat);
+        const bestEl = document.getElementById('best-' + cat);
+        if (nowEl) nowEl.textContent = currentCounts[cat] ?? 0;
+        if (bestEl) bestEl.textContent = bestCounts[cat] != null ? bestCounts[cat] : '—';
+      }
+      for (const cat of CHESS_DAY_CATS) {
+        const count = chessDayCounts[cat] ?? 0;
+        const stateEl = document.getElementById('chess-state-' + cat);
+        if (stateEl) stateEl.src = count > 0 ? CHESS_DAY_ICON_ON[cat] : CHESS_DAY_ICON_OFF[cat];
+        const nowEl = document.getElementById('chess-day-now-' + cat);
+        const bestEl = document.getElementById('chess-day-best-' + cat);
+        if (nowEl) nowEl.textContent = count;
+        if (bestEl) bestEl.textContent = chessDayBests[cat] != null ? chessDayBests[cat] : '—';
+      }
+      for (const cat of MISC_CATS) {
+        const nowEl = document.getElementById('misc-now-' + cat);
+        if (nowEl) nowEl.textContent = miscCounts[cat] ?? 0;
+      }
+    }
+
+    // ── Poll ──────────────────────────────────────────────────────────────────────
+    function render(data) {
+      const badge = document.getElementById('day-badge');
+      if (!data || !data.connected) {
+        badge.textContent = 'Not connected';
+        badge.className = 'day-badge offline';
+        return;
+      }
+
+      badge.textContent = data.day > 0 ? 'Day ' + data.day : 'In Menu';
+      badge.className = 'day-badge';
+
+      const rooms = data.map && data.map.rooms ? data.map.rooms : [];
+      const gridRooms = rooms.filter(r => r.x !== -1);
+      const n = gridRooms.length;
+      document.getElementById('rooms-val').textContent = n;
+
+      // Accumulate rooms seen this run (for Perplexing "EVER" condition)
+      for (const r of rooms) if (r.x !== -1) runSeenKeys.add(dirBase(r.key));
+      const outerRoom = rooms.find(r => r.x === -1);
+      const outerKey = outerRoom ? dirBase(outerRoom.key) : null;
+
+      // West/East Facing: col4=East wing, col0=West wing (drafted rooms only, corners included)
+      const eastCount = rooms.filter(r => r.x !== -1 && r.x === 4 && r.key).length;
+      const westCount = rooms.filter(r => r.x !== -1 && r.x === 0 && r.key).length;
+      const facingThreshold = n < 20 ? 4 : n > 35 ? 6 : 5;
+      const facingAdjustable = Math.min(5, Math.max(4, facingThreshold - 1));
+      const facingDiff = eastCount - westCount; // positive = East lean, negative = West lean
+      const eastFacing = facingDiff > facingAdjustable;
+      const westFacing = facingDiff < -facingAdjustable;
+
+      // Hard shutoff (sticky): herladyships/garden/sports/sacred/academic≥4 — NOT overrideable by facing
+      if (!hardSuppressed && n > 0) hardSuppressed = isHardShutoff(rooms, n, outerKey);
+
+      // General shutoff (sticky): any prefix shutoff — overrideable by facing for the soft ones
+      if (!estateNameSuppressed && n > 0) {
+        for (const p of PREFIXES)
+          if (p.shutoffCond(rooms, n, outerKey)) { estateNameSuppressed = true; break; }
+      }
+
+      // Facing text: only shows when facing condition met and no hard shutoff fired
+      const showFacing = !hardSuppressed && n > 0 && (westFacing || eastFacing);
+
+      // Estate/facing display: facing text replaces estate title when active;
+      // also overrides the suppressed (blank) state so it always shows through.
+      const estateEl = document.getElementById('rooms-estate');
+      if (estateEl) {
+        if (showFacing) {
+          estateEl.textContent = westFacing ? 'West Facing' : 'East Facing';
+          estateEl.classList.add('facing');
+        } else if (n > 0 && !estateNameSuppressed) {
+          estateEl.textContent = '(' + getEstateTitle(n) + ')';
+          estateEl.classList.remove('facing');
+        } else if (n > 0 && estateNameSuppressed) {
+          estateEl.textContent = '(size-based disabled)';
+          estateEl.classList.remove('facing');
+        } else {
+          estateEl.textContent = '';
+          estateEl.classList.remove('facing');
+        }
+      }
+
+      // Prefix icons: only shown via the normal (non-facing-override) path
+      const iconsEl = document.getElementById('prefix-icons');
+      if (iconsEl) {
+        iconsEl.innerHTML = '';
+        if (!estateNameSuppressed && n > 0) {
+          for (const p of PREFIXES) {
+            if (!p.iconCond(rooms, n, outerKey) || p.shutoffCond(rooms, n, outerKey)) continue;
+            const img = document.createElement('img');
+            img.className = 'prefix-icon'; img.src = p.icon; img.alt = p.id; img.title = p.tip;
+            img.onerror = function () { this.style.display = 'none'; };
+            iconsEl.appendChild(img);
+          }
+        }
+      }
+
+      if (!dataReady) return;
+
+      const runId = data.run_id ?? 0;
+      if (runId > 0 && runId !== currentRunId) {
+        updateBests();
+        if (currentRunId > 0) {
+          dayEventsAreFresh = false;
+          dayEventsNonZeroSeen = false;
+          dayEventsFreshHold = 12; // ~6s hold before an all-zero day_events is trusted (StatsLogger needs time to attach)
+        }
+        currentRunId = runId;
+        currentCounts = {};
+        chessDayCounts = {};
+        runSeenKeys = new Set();
+        estateNameSuppressed = false;
+        hardSuppressed = false;
+        // lastDayTitle/lastDayEast/lastDayWest intentionally NOT cleared here.
+        // If run reset and abandoned=true land on the same frame (race: new GM found while n=0),
+        // preserving them lets the day-end fire check still see the correct saved state.
+        // The prevWasAbandoned day-start logic resets them when new rooms first appear.
+        dayEndFired = false;
+        peakDayN = 0;
+        prevWasAbandoned = true;
+        miscCounts = {};
+        // dayEndAchievements intentionally kept — accumulates across days; cleared on page refresh
+        // dirSets and chessSets accumulate across runs this session, reset on page refresh
+        // lastSaveData and miscBests intentionally kept (save persists; bests are session highs)
+        const _saveBase = data.save !== undefined ? data.save : lastSaveData;
+        runStartSave = _saveBase ? {
+          upgrade_discs_save: _saveBase.upgrade_discs_save ?? 0,
+          fp_found_save: _saveBase.fp_found_save ?? 0,
+          fp_studio_save: _saveBase.fp_studio_save ?? 0,
+          contraptions_save: _saveBase.contraptions_save ?? 0,
+        } : null;
+      }
+
+      // Once day_events resets to all-zero for tracked keys, it's safe to add them again.
+      // Guard: require either (a) we observed stale non-zero events then saw them clear, OR
+      // (b) hold period expired — prevents premature flip while StatsLogger is still attaching.
+      if (!dayEventsAreFresh && runId > 0) {
+        const de = data.day_events ?? {};
+        const trackedKeys = [...CRAFTED_KEYS, ...UPGRADE_DISK_KEYS, ...FLOORPLAN_FOUND_KEYS, ...STUDIO_ADDED_KEYS, ...CABINET_DAY_KEYS];
+        if (trackedKeys.some(k => (de[k] ?? 0) > 0)) dayEventsNonZeroSeen = true;
+        if (dayEventsFreshHold > 0) dayEventsFreshHold--;
+        const allClear = trackedKeys.every(k => (de[k] ?? 0) === 0);
+        if (allClear && (dayEventsNonZeroSeen || dayEventsFreshHold === 0)) dayEventsAreFresh = true;
+      }
+
+      currentCounts = computeHouseCounts(rooms);
+      chessDayCounts = computeChessDayCounts(rooms);
+      updateBests();
+      mergeDirRooms(rooms);
+      mergeChessRooms(rooms);
+
+      // Preserve last seen save section (partial writes omit it)
+      if (data.save !== undefined) lastSaveData = data.save;
+
+      // Capture baseline on the first save that arrives after a run starts (if not set at run-start time)
+      if (runId > 0 && dayEventsAreFresh && runStartSave === null && lastSaveData !== null) {
+        runStartSave = {
+          upgrade_discs_save: lastSaveData.upgrade_discs_save ?? 0,
+          fp_found_save: lastSaveData.fp_found_save ?? 0,
+          fp_studio_save: lastSaveData.fp_studio_save ?? 0,
+          contraptions_save: lastSaveData.contraptions_save ?? 0,
+        };
+      }
+      // End-of-day detection: if any tracked save field exceeds the run-start baseline while
+      // still in the same run, the game has flushed today's events to disk — freeze day_events
+      // so they aren't double-counted on top of the updated save values.
+      if (dayEventsAreFresh && runId > 0 && runStartSave !== null && lastSaveData !== null) {
+        if ((lastSaveData.upgrade_discs_save ?? 0) > runStartSave.upgrade_discs_save ||
+          (lastSaveData.fp_found_save ?? 0) > runStartSave.fp_found_save ||
+          (lastSaveData.fp_studio_save ?? 0) > runStartSave.fp_studio_save ||
+          (lastSaveData.contraptions_save ?? 0) > runStartSave.contraptions_save) {
+          dayEventsAreFresh = false;
+          dayEventsNonZeroSeen = false;
+          dayEventsFreshHold = 0;
+        }
+      }
+
+      miscCounts = computeMiscCounts(lastSaveData, data.run_events ?? null, data.run_id ?? 0, data.day_events ?? null, dayEventsAreFresh);
+
+      updateUI();
+
+      // Day-end detection: uses previous frame's saved state so a brief n=0 at
+      // transition doesn't cause the check to be skipped or read wrong rooms.
+      const currentDay = data.day ?? 0;
+      // Day-end detection: estate resets to "Abandoned Project" (n<5) at end of day.
+      // lastDayTitle is NEVER cleared on abandoned state — only updated when rooms are present.
+      // dayEndFired prevents re-triggering if abandoned briefly mid-day (e.g. loading screens);
+      // it resets when the estate is non-abandoned again.
+      // Facing takes priority — if facing was active, only award that (not the title).
+      const currentTitle = n > 0 ? getEstateTitle(n) : null;
+      const isAbandoned = currentTitle === 'Abandoned Project' || currentTitle === null;
+      const dbgSavedTitle = lastDayTitle;
+
+      if (isAbandoned) {
+        if (lastDayTitle && lastDayTitle !== 'Abandoned Project' && !dayEndFired) {
+          if (lastDayWest) {
+            dayEndAchievements.add('westfacing');
+          } else if (lastDayEast) {
+            dayEndAchievements.add('eastfacing');
+          } else {
+            for (const t of DAYEND_TRIGGERS) {
+              if (t.key !== 'westfacing' && t.key !== 'eastfacing' && t.title === lastDayTitle)
+                dayEndAchievements.add(t.key);
+            }
+          }
+          dayEndFired = true;
+        }
+        prevWasAbandoned = true;
+        // Keep lastDayTitle as-is — don't null it out
+      } else {
+        // First non-abandoned frame after a reset = new day starting; reset per-day tracking
+        if (prevWasAbandoned) {
+          peakDayN = 0;
+          lastDayWest = false;
+          lastDayEast = false;
+        }
+        prevWasAbandoned = false;
+        // Only advance title while growing — freezes at peak when rooms start clearing
+        if (n >= peakDayN) {
+          peakDayN = n;
+          lastDayTitle = currentTitle;
+        }
+        // Facing: sticky within day — once active stays saved through end-of-day teardown
+        if (eastFacing) lastDayEast = true;
+        if (westFacing) lastDayWest = true;
+        dayEndFired = false;
+      }
+
+      const dbg = document.getElementById('dayend-debug');
+      if (dbg) dbg.innerHTML =
+        'n=' + n + ' runId=' + runId + ' abandoned=' + isAbandoned + ' prevAband=' + prevWasAbandoned + '<br>' +
+        'cur=' + (currentTitle ?? 'null') + ' saved=' + (dbgSavedTitle ?? 'null') + ' peak=' + peakDayN + '<br>' +
+        'E=' + lastDayEast + ' W=' + lastDayWest + ' fired=' + dayEndFired + ' achiev=[' + [...dayEndAchievements].join(',') + ']';
+
+      // Day-end achievement images (permanent for the run)
+      const achievEl = document.getElementById('dayend-achievements');
+      if (achievEl) {
+        achievEl.innerHTML = '';
+        for (const t of DAYEND_TRIGGERS) {
+          if (!dayEndAchievements.has(t.key)) continue;
+          const img = document.createElement('img');
+          img.className = 'dayend-img'; img.src = t.icon; img.alt = t.key;
+          img.onerror = function () { this.style.display = 'none'; };
+          achievEl.appendChild(img);
+        }
+      }
+    }
+
+    function poll() {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', STATS_FILE + '?_=' + Date.now(), true);
+      xhr.overrideMimeType('application/json');
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState !== 4) return;
+        if (xhr.status !== 0 && xhr.status !== 200) {
+          document.getElementById('day-badge').textContent = 'Not connected';
+          document.getElementById('day-badge').className = 'day-badge offline';
+          return;
+        }
+        try { render(JSON.parse(xhr.responseText)); } catch (_) { }
+      };
+      xhr.onerror = function () {
+        document.getElementById('day-badge').textContent = 'Not connected';
+        document.getElementById('day-badge').className = 'day-badge offline';
+      };
+      xhr.send();
+    }
+
+    loadData();
+    setInterval(poll, POLL_MS);
+    poll();
+  </script>
+</body>
+
+</html>

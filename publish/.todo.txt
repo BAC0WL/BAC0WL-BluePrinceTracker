@@ -1,0 +1,18 @@
+STUFF I NEED TO DO:
+
+Implement House Prefix name next to room count
+	- implement east/west facing
+Before starting the estate title logic, it checks the house size to set Threshhold INT to a number between 4 and 6. If <20, it picks 4. If >35, it picks 6. Otherwise it picks 5.
+When it starts checking for West/East, it counts the number of drafted rooms on each wing (i.e. rooms that do not have an empty room name). Corners, of course, are included.
+It then takes the difference (East - West), comparing it to a value Adjustable INT (which is Threshhold INT - 1, clamped between 4 and 5; so 4 if size <= 35, 5 otherwise).
+East Facing is a valid title if the difference is strictly greater than Adjustable INT (which is to say, at least 5 if size <= 35, 6 otherwise)
+West Facing is a valid title if the difference is strictly less than Adjustable INT * -1 (which is to say, at most -5 if size <= 35, -6 otherwise).
+
+
+
+FIX CLOSED EXHIBIT
+Event Stuff
+
+``cabinet keys``, micro chips, discs, allowance, and contraptions
+
+Separate Gamebleed HTML Page
