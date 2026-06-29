@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8">
   <title>Blue Prince Tracker</title>
+  <script>if (!window.obsstudio) document.documentElement.classList.add('browser-view');</script>
   <style>
     * {
       box-sizing: border-box;
@@ -15,6 +16,24 @@
       background: transparent;
       font-family: 'Segoe UI', system-ui, sans-serif;
       overflow: hidden;
+    }
+
+    /* ── Browser view background (not applied in OBS) ── */
+    html.browser-view {
+      background:
+        radial-gradient(ellipse at 20% 10%, rgba(20, 55, 130, 0.35) 0%, transparent 55%),
+        radial-gradient(ellipse at 80% 90%, rgba(8, 25, 70, 0.4) 0%, transparent 55%),
+        linear-gradient(160deg, #030810 0%, #05101f 55%, #020a18 100%);
+      min-height: 100vh;
+    }
+
+    html.browser-view body {
+      background: transparent;
+      overflow: auto;
+      display: flex;
+      justify-content: center;
+      padding: 30px 20px;
+      min-height: 100vh;
     }
 
     #overlay {
@@ -141,8 +160,13 @@
       margin-left: auto;
     }
 
+    #estate-title-header {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
     .dayend-img {
-      height: 32px;
+      height: 48px;
       width: auto;
       image-rendering: crisp-edges;
     }
@@ -303,7 +327,7 @@
     <div id="dayend-debug"
       style="font-size:10px;color:yellow;margin-bottom:3px;font-family:monospace;line-height:1.4;display:none">
     </div>
-    <div class="section-title">Estate Titles</div>
+    <div class="section-title" id="estate-title-header">Estate Titles</div>
     <div class="rooms-row">
       <span class="rooms-label">Rooms</span>
       <span class="rooms-val" id="rooms-val">—</span>

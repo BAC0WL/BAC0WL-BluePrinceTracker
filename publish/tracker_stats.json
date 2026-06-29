@@ -1,4 +1,82 @@
 {
   "connected": true,
-  "day": 0
+  "run_id": 2,
+  "day": 0,
+  "live": {
+    "keys": 0,
+    "gems": 0,
+    "gold": 0,
+    "steps": 0,
+    "stars": 0,
+    "allowance": 0
+  },
+  "map": {
+    "player_x": 2,
+    "player_y": 0,
+    "rooms": [
+      {
+        "x": 2,
+        "y": 0,
+        "key": "entrancehall",
+        "doors": "4",
+        "wr": 2
+      },
+      {
+        "x": 2,
+        "y": 8,
+        "key": "antechamber",
+        "doors": "4",
+        "wr": 0
+      },
+      {
+        "x": 3,
+        "y": 0,
+        "key": "spareroom",
+        "doors": "ew",
+        "wr": 1
+      }
+    ]
+  },
+  "day_events": {
+    "Drafted_Room": 1
+  },
+  "run_events": {},
+  "save": {
+    "mjb": {
+      "LostFound": 0,
+      "ArchAries": 0,
+      "ClosedExhibit": 0,
+      "Corarica": 0,
+      "Eraja": 0,
+      "FennAries": 0,
+      "MasterBedroom": 0,
+      "MoraJai": 0,
+      "Nuance": 0,
+      "OrindaAries": 0,
+      "Solarium": 0,
+      "Tomb": 0,
+      "TradingPost": 0,
+      "Tunnel": 0,
+      "Verra": 0,
+      "WatchTower": 0
+    },
+    "allowance_bonus": {
+      "cloister_allowance": 0,
+      "opened_149": 0,
+      "opened_233": 0,
+      "entrance_hall": 0,
+      "room8_solved": 0
+    },
+    "cabinet": {
+      "c3": 0,
+      "c4": 0,
+      "c5": 0
+    },
+    "room8_drafted": 0,
+    "chamber_additions": 0,
+    "contraptions_save": 0,
+    "upgrade_discs_save": 0,
+    "fp_found_save": 0,
+    "fp_studio_save": 0
+  }
 }

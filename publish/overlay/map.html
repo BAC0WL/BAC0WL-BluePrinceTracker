@@ -2,12 +2,30 @@
 <html>
 <head>
 <meta charset="utf-8">
+<script>if (!window.obsstudio) document.documentElement.classList.add('browser-view');</script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
     background: transparent;
     overflow: hidden;
+  }
+
+  html.browser-view {
+    background:
+      radial-gradient(ellipse at 20% 10%, rgba(20, 55, 130, 0.35) 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 90%, rgba(8, 25, 70, 0.4) 0%, transparent 55%),
+      linear-gradient(160deg, #030810 0%, #05101f 55%, #020a18 100%);
+    min-height: 100vh;
+  }
+  html.browser-view body {
+    background: transparent;
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 30px 20px;
   }
 
   #container {
@@ -40,7 +58,7 @@
   #outer-panel img {
     width: 128px;
     height: 128px;
-    image-rendering: crisp-edges;
+    image-rendering: pixelated;
     display: block;
   }
 
