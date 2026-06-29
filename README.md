@@ -24,17 +24,22 @@ The tool reads another process's memory, which requires elevated privileges on W
 
 1. Launch **Blue Prince**
 2. Run `BluePrinceExternalReader.exe` as administrator
-3. Open `overlay/index.html` (and `overlay/map.html` *NOT LEGAL FOR WEEKLIES*) as a browser source in OBS for the overlay UI
+3. Open `overlay/index.html` (and `overlay/map.html` *NOT LEGAL FOR WEEKLIES*) as a browser source in OBS for the overlay UI 
+OR Open localhost:5799/overlay/index.html & localhost:5799/overlay/map.html
 4. The tool will scan for the game automatically and update in real time probably
 
 
 
 
 ## KNOWN ISSUES
- - Sometimes, the gridmanager just can't be found and I can't find out why yet. I'll keep working on it
+ - Sometimes, the gridmanager just randomly can't be found and I can't find out why yet. I'll keep working on it. It usually fixes itself when you end the day and any misc tracking should still be tracked since I use the save file as a backup, just not until the day ends.
  - Won't properly track if you ignore getting the room 8 trophy for multiple allowance tokens
  - Estate title tracker stuff is finnicky at best because its complicated.
- - Occasionally the tracker for upgrade discs, cabinet keys, and permanent floorplans will duplicate what was done on that day temporarily on day end, will fix itself within a minute
+ - Occasionally the tracker for upgrade discs, cabinet keys, and permanent floorplans will duplicate what was done on that day temporarily on day end, will fix itself within a minute.
+ - Rotunda actively rotating in estate may not work
+ - Guess Bedroom & Quest Bedroom aren't tracked
+ - Room Upgrades & Power Hammering the Greenhouse won't update it on the map until the next day
+ - Probably a lot more that I forgot about
 
 ## Any Issues or Suggestions
 Dm me and ill get back to you in 3-5 business days
